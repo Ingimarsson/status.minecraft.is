@@ -1,0 +1,56 @@
+#!/usr/bin/env php
+<?php
+require("./module/gs4query.class.php");
+require("./module/clientquery.class.php");
+require("./src/database.class.php");
+require("./src/log.class.php");
+
+$log = new log("./query.log");
+$log->write("Minecraft query routine initiated");
+
+$gs4 = new MinecraftQuery();
+
+$mysql = new database('mysql:host=localhost;dbname=minecraft', 'root', '*****', array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+
+$servers = $mysql->get("SELECT id, ip, port FROM minequery_servers;");
+
+foreach($servers as $server){
+    $id = $server['id'];
+    $ip = $server['ip'];
+    $port = $server['port'];
+
+    if(!@fsockopen($ip, $port, $errno, $errstr, 2.0)){
+        $log->write("Server ".$ip." did not respond");
+        continue;
+    }
+
+    elseif($gs4->connect($ip, $port, 5)){
+        $log->write("Server ".$ip." responded to GS4 query");
+        
+        $info = $gs4->GetInfo();
+        $players = implode(", ", $gs4->GetPlayers());
+        $plugins = implode("; ", $info['Plugins']);
+        
+        $query = sprintf("INSERT INTO minequery(server_id, query_response, server_motd, server_version, server_online_players, server_max_players, server_gamemode, server_software, server_plugins, server_players) VALUES(%s, 2, '%s', '%s', %s, %s, '%s', '%s', '%s', '%s');", $id, $info['HostName'], $info['Version'], $info['Players'], $info['MaxPlayers'], $info['GameType'], $info['Software'], $plugins, $players);
+        
+        $mysql->execute($query);
+    
+        continue;
+    }
+
+    else{
+
+        $log->write("Server ".$ip." did not respond to GS4 query, using default query");
+        
+        $server = new minecraft_server($ip, $port);
+        $server->get_ping_info($info);
+
+        $query = sprintf("INSERT INTO minequery(server_id, query_response, server_motd, server_online_players, server_max_players) VALUES(%s, 1, '%s', %s, %s);", $id, $info['motd'], $info['players'], $info['max_players']);
+
+        $mysql->execute($query);
+    } 
+}
+
+$log->write("Minecraft query routine finished");
+
+?>
