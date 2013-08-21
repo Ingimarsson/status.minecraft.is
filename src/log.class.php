@@ -6,14 +6,14 @@ class log {
     
     public function __construct($file){
         $this->log = fopen($file, "a");
-        self::instance = $this;
+        self::$instance = $this;
     }
     
     static public function getInstance() {
-        if (self::instance == null) {
+        if (self::$instance == null) {
             return new log();
         }
-        return self::instance;
+        return self::$instance;
     }
 
     public function write($entry){
