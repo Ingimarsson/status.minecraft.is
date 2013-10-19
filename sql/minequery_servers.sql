@@ -7,4 +7,4 @@ CREATE TABLE `minequery_servers` (
     `display_plugins` int(11) NOT NULL,
     `registrant` varchar(256),
     PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;

@@ -3,7 +3,7 @@
 class log {
     private $log;
     public function __construct($file){
-        $this->log = fopen($file, "a");
+        $this->log = fopen($file, "a", true);
     }
 
     public function write($entry){
