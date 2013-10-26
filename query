@@ -1,56 +1,83 @@
 #!/usr/bin/env php
 <?php
-require("./module/gs4query.class.php");
-require("./module/clientquery.class.php");
-require("./src/database.class.php");
-require("./src/log.class.php");
 
-$log = new log("./query.log");
-$log->write("Minecraft query routine initiated");
+$include_path = "/home/binni/minecraft.is/";
 
-$gs4 = new MinecraftQuery();
+set_include_path(get_include_path().PATH_SEPARATOR.$include_path);
 
-$mysql = new database('mysql:host=localhost;dbname=minecraft', 'root', '*****', array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+require("lib/MinecraftQuery.class.php");
+require("src/database.class.php");
+require("src/log.class.php");
+require("config.php");
 
-$servers = $mysql->get("SELECT id, ip, port FROM minequery_servers;");
+$log = new log($include_path."query.log");
+$log->write("Minequery cron script initiated.");
+
+$mysql = new database(
+    sprintf('mysql:host=%s;dbname=%s', 
+        $config['mysql']['host'], 
+        $config['mysql']['dbname']
+    ), 
+    $config['mysql']['username'], 
+    $config['mysql']['password'], 
+    array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+
+$minecraft = new MinecraftQuery();
+
+$servers = $mysql->fetchall("SELECT id, ip, port FROM minequery_servers;");
 
 foreach($servers as $server){
-    $id = $server['id'];
-    $ip = $server['ip'];
-    $port = $server['port'];
-
-    if(!@fsockopen($ip, $port, $errno, $errstr, 2.0)){
-        $log->write("Server ".$ip." did not respond");
-        continue;
-    }
-
-    elseif($gs4->connect($ip, $port, 5)){
-        $log->write("Server ".$ip." responded to GS4 query");
-        
-        $info = $gs4->GetInfo();
-        $players = implode(", ", $gs4->GetPlayers());
-        $plugins = implode("; ", $info['Plugins']);
-        
-        $query = sprintf("INSERT INTO minequery(server_id, query_response, server_motd, server_version, server_online_players, server_max_players, server_gamemode, server_software, server_plugins, server_players) VALUES(%s, 2, '%s', '%s', %s, %s, '%s', '%s', '%s', '%s');", $id, $info['HostName'], $info['Version'], $info['Players'], $info['MaxPlayers'], $info['GameType'], $info['Software'], $plugins, $players);
-        
-        $mysql->execute($query);
+    try {
+        $minecraft->Connect($server['ip'], $server['port']);
     
+    } catch(Exception $e) {
+        $log->write("MinecraftQuery returned exception for server ".$server['ip']);
+
         continue;
+
     }
 
-    else{
+    $info = $minecraft->GetInfo();
+    $players = $minecraft->GetPlayers();
 
-        $log->write("Server ".$ip." did not respond to GS4 query, using default query");
-        
-        $server = new minecraft_server($ip, $port);
-        $server->get_ping_info($info);
+    $mysql->execute("INSERT INTO minequery(server_id, server_motd, server_version, server_players, server_max_players, server_gamemode, server_software) VALUES(?, ?, ?, ?, ?, ?, ?);", 
+        array(
+            $server['id'], 
+            utf8_encode($info['HostName']), 
+            $info['Version'], 
+            $info['Players'], 
+            $info['MaxPlayers'], 
+            $info['GameType'], 
+            $info['Software']
+        )
+    );
 
-        $query = sprintf("INSERT INTO minequery(server_id, query_response, server_motd, server_online_players, server_max_players) VALUES(%s, 1, '%s', %s, %s);", $id, $info['motd'], $info['players'], $info['max_players']);
+    $status_id = $mysql->fetch("SELECT id FROM minequery WHERE server_id=? ORDER BY date DESC LIMIT 1;", array($server['id']))['id'];
 
-        $mysql->execute($query);
-    } 
+    foreach($players as $player){
+        $mysql->execute("INSERT INTO minequery_players(server_id, server_status_id, player) VALUES(?, ?, ?);", 
+            array(
+                $server['id'],
+                $status_id,
+                $player
+            )
+        );
+    }
+
+    foreach($info['Plugins'] as $plugin){
+        $mysql->execute("INSERT INTO minequery_plugins(server_id, server_status_id, plugin) VALUES(?, ?, ?);",
+            array(
+                $server['id'],
+                $status_id,
+                $plugin
+            )
+        );
+    }
+
+    $log->write("Logging successful for server ".$server['ip']);
+
 }
 
-$log->write("Minecraft query routine finished");
+$log->write("Minequery cron script finished");
 
 ?>
