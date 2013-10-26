@@ -39,7 +39,7 @@ if(isset($_GET['player'])){
         array($_GET['player'])
     );
     
-    printf("<p><a href='/'>Forsíða</a> > Spilari > <a href='/?player=%s'>%s</a></p>"
+    printf("<p><a href='/'>Forsíða</a> &gt; Spilari &gt; <a href='/?player=%s'>%s</a></p>"
 		, urlencode($_GET['player'])
 		, htmlentities($_GET['player'])
 	);
@@ -120,7 +120,7 @@ if(isset($_GET['player'])){
         echo "<div class='alert alert-danger'>Server með þessu ID er ekki í gagnagrunninum</div>";
     }
 
-    printf("<p><a href='/'>Forsíða</a> > Server > <a href='/?server=%s'>%s</a></p>"
+    printf("<p><a href='/'>Forsíða</a> &gt; Server &gt; <a href='/?server=%s'>%s</a></p>"
 		, urlencode($_GET['server'])
 		, $server['ip']
 	);
