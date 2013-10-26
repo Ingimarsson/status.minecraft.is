@@ -39,13 +39,18 @@ if(isset($_GET['player'])){
         array($_GET['player'])
     );
     
-    echo "<p><a href='/'>Forsíða</a> > Spilari > <a href='/?player={$_GET['player']}'>{$_GET['player']}</a></p>";
+    printf("<p><a href='/'>Forsíða</a> > Spilari > <a href='/?player=%s'>%s</a></p>"
+		, urlencode($_GET['player'])
+		, htmlentities($_GET['player'])
+	);
    
     if($player['time_spent']==0){
         echo "<div class='alert alert-danger'>Enginn spilari með þessu nafni hefur sést spila á íslenskum serverum</div>";
     }
 
-    echo "<div class='row'><div class='col-lg-6'><h2>{$_GET['player']}</h2>";
+    printf("<div class='row'><div class='col-lg-6'><h2>%s</h2>"
+		, htmlentities($_GET['player'])
+	);
     
     if(strtotime($player['last_seen'])<time()-600){ //If server was online less than ten minutes ago.
         $status = "<span class='label label-danger'>Offline</span>";
@@ -94,7 +99,9 @@ if(isset($_GET['player'])){
 
     echo "</table></div><div class='col-lg-6'><br/><br/><br/>";
 
-    echo "<img src='https://minotar.net/avatar/{$_GET['player']}/256'/>";
+    printf("<img src='https://minotar.net/avatar/%s/256'/>"
+		, urlencode($_GET['player'])
+	);
 
     echo "</div></div>";
 
@@ -113,7 +120,10 @@ if(isset($_GET['player'])){
         echo "<div class='alert alert-danger'>Server með þessu ID er ekki í gagnagrunninum</div>";
     }
 
-    echo "<p><a href='/'>Forsíða</a> > Server > <a href='/?server={$_GET['server']}'>{$server['ip']}</a></p>";
+    printf("<p><a href='/'>Forsíða</a> > Server > <a href='/?server=%s'>%s</a></p>"
+		, urlencode($_GET['server'])
+		, $server['ip']
+	);
     
     echo "<div class='row'><div class='col-lg-6'>";
 
