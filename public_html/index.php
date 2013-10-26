@@ -58,7 +58,7 @@ if(isset($_GET['player'])){
         $status = "<span class='label label-success'>Online</span>";
     }
     
-    echo sprintf("<table width=500>
+    printf("<table width=500>
         <tr><td>Klukkustundir</td><td>%s klst</td></tr>
         <tr><td>Status</td><td>%s</td></tr>
         <tr><td>Síðast online</td><td>%s</td></tr>
@@ -87,7 +87,7 @@ if(isset($_GET['player'])){
     echo "<table width=500><tr><th>Server</th><th>Klukkustundir</th></tr>";
 
     foreach($servers as $server){
-        echo sprintf("<tr>
+        printf("<tr>
             <td>%s</td>
             <td>%s klst</td>
         </tr>",
@@ -135,7 +135,7 @@ if(isset($_GET['player'])){
         $status = "<span class='label label-success'>Online</span>";
     }
    
-    echo sprintf("<table>
+    printf("<table>
         <tr>
         <tr><td>Staða</td><td>%s</td></tr>
         <tr><td>Titill</td><td>%s</td></tr>
@@ -236,7 +236,7 @@ if(isset($_GET['player'])){
 
         $server['server_motd'] = preg_replace('/§[0-9a-f]{1}/', '', $server['server_motd']); //Remove color codes from MOTD.
 
-        echo sprintf("<tr>
+        printf("<tr>
             <td><a href='?server=%s'>%s</a></td>
             <td>%s</td>
             <td>%s</td>
@@ -285,7 +285,7 @@ if(isset($_GET['player'])){
     foreach($players as $player){
         $hours = floor($player['minutes']/60);
 
-        echo sprintf("<tr>
+        printf("<tr>
             <td><img src='https://minotar.net/avatar/%s/16'/></td>
             <td><a href='?player=%s'>%s</a></td>
             <td>%s klst</td>
