@@ -2,8 +2,6 @@
 
 class log {
     private $log;
-    public static $instance;
-    
     public function __construct($file){
         $this->log = fopen($file, "a", true);
     }
