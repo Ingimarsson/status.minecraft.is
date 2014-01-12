@@ -6,6 +6,20 @@
 <meta http-equiv="refresh" content="60">
 <title>Status.minecraft.is</title>
 <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css">
+<script>
+  
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new 
+Date();a=s.createElement(o),
+  
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-35897517-2', 'minecraft.is');
+  ga('send', 'pageview');
+
+</script>
 </head>
 <body>
 <div class="container">
@@ -17,6 +31,8 @@ set_include_path($include_path);
 
 require('src/database.class.php');
 require('config.php');
+
+$time_start = microtime(true);
 
 $mysql = new database(
     sprintf('mysql:host=%s;dbname=%s', 
@@ -209,7 +225,8 @@ if(isset($_GET['player'])){
             SELECT MAX(`id`) 
             FROM `minequery` 
             GROUP BY `server_id`
-        );"
+        )
+        AND `minequery_servers`.`visible`=1;"
     );
 
     echo "<p><b>Staða íslenskra minecraft servera</b></p>";
@@ -230,6 +247,7 @@ if(isset($_GET['player'])){
     foreach($servers as $server){
         if(strtotime($server['date'])<time()-600){ //If server was online less than ten minutes ago.
             $status = "<span class='label label-danger'>Offline</span>";
+            $server['server_players'] = 0;
         } else {
             $status = "<span class='label label-success'>Online</span>";
         }
@@ -304,10 +322,10 @@ if(isset($_GET['player'])){
 
 ?>
 
-<div id='footer' style='margin: 20px 0px 30px 0px;'>
-    <br/>
 </div>
-
+<div class='navbar navbar-fixed-bottom' style='padding-top: 5px; text-align: center;'>
+    <a href='https://github.com/Remion/status.minecraft.is '>https://github.com/remion/status.minecraft.is </a><br/>
+    &copy; Remion 2013-2014 &ensp; <?php echo round(microtime(true) - $time_start, 4); ?>s
 </div>
 </body>
 </html>

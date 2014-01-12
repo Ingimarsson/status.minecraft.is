@@ -6,5 +6,6 @@ CREATE TABLE `minequery_servers` (
     `query_port` int(11) NOT NULL,
     `display_plugins` int(11) NOT NULL,
     `registrant` varchar(256),
+    `visible` int(11) DEFAULT 1,
     PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
